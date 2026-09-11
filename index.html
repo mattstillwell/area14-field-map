@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
 <style>
-html,body,#map{height:100%;margin:0;font-family:Arial,sans-serif}#panel{position:absolute;z-index:1000;top:10px;right:10px;width:min(370px,calc(100vw - 20px));background:#fff;padding:12px;border-radius:8px;box-shadow:0 2px 10px #0004;max-height:46vh;overflow:auto}#panel h2{font-size:17px;margin:0 0 8px}.row{display:flex;gap:7px;margin:5px 0;flex-wrap:wrap}input,select,button{font-size:14px;padding:7px}input[type=text]{flex:1;min-width:150px}button{cursor:pointer}.legend span{display:inline-block;margin-right:10px;font-size:12px}.dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:3px}.count{font-size:13px;font-weight:bold;margin-top:6px}.popup table{border-collapse:collapse;font-size:12px}.popup td{padding:2px 5px;vertical-align:top;border-bottom:1px solid #eee}.popup a.gmap{display:inline-block;margin-top:8px;padding:7px 10px;background:#1a73e8;color:white;text-decoration:none;border-radius:4px}#loading{position:absolute;z-index:1200;inset:0;display:flex;align-items:center;justify-content:center;background:#fff;font-size:18px}@media(max-width:650px){#panel{max-height:38vh}}
+html,body,#map{height:100%;margin:0;font-family:Arial,sans-serif}#panel{position:absolute;z-index:1000;top:10px;right:10px;width:min(370px,calc(100vw - 20px));background:#fff;padding:12px;border-radius:8px;box-shadow:0 2px 10px #0004;max-height:46vh;overflow:auto}#panel h2{font-size:17px;margin:0 0 8px}.row{display:flex;gap:7px;margin:5px 0;flex-wrap:wrap}input,select,button{font-size:14px;padding:7px}input[type=text]{flex:1;min-width:150px}button{cursor:pointer}.legend span{display:inline-block;margin-right:10px;font-size:12px}.dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:3px}.count{font-size:13px;font-weight:bold;margin-top:6px}.popup table{border-collapse:collapse;font-size:12px}.popup td{padding:2px 5px;vertical-align:top;border-bottom:1px solid #eee}.popup a.gmap{display:inline-block;margin-top:8px;padding:7px 10px;background:#1a73e8;color:white;text-decoration:none;border-radius:4px}#loading{position:absolute;z-index:1200;inset:0;display:flex;align-items:center;justify-content:center;background:#fff;font-size:18px;text-align:center;padding:20px}@media(max-width:650px){#panel{max-height:38vh}}
 </style></head><body>
 <div id="loading">Loading Area 14 survey map…</div>
 <div id="panel"><h2>Area 14 - Cutting Re-inspection</h2>
@@ -16,7 +16,7 @@ html,body,#map{height:100%;margin:0;font-family:Arial,sans-serif}#panel{position
 <div class="row"><button onclick="locateMe()">Locate me</button><button onclick="resetMap()">Reset view</button></div>
 <div class="legend"><span><i class="dot" style="background:#8e44ad"></i>Safety Critical</span><span><i class="dot" style="background:#d73027"></i>High</span><span><i class="dot" style="background:#f39c12"></i>Medium</span><span><i class="dot" style="background:#2e8b57"></i>Low</span><span><i class="dot" style="background:#2980b9"></i>Re-survey</span></div><div id="count" class="count"></div></div>
 <div id="map"></div>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script><script src="data.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script><script src="data.js?v=2"></script>
 <script>
 let DATA=[],map,cluster,locLayer=null;
 function colour(r){if(r.action!=='Cutting Work')return'#2980b9';if(r.priority==='Safety Critical')return'#8e44ad';if(r.priority==='High Priority')return'#d73027';if(r.priority==='Medium Priority')return'#f39c12';return'#2e8b57'}
@@ -25,7 +25,21 @@ function popup(r){const rows=[['Action',r.action],['Priority',r.priority],['Work
 function applyFilters(){if(!cluster)return;cluster.clearLayers();const q=document.getElementById('search').value.trim().toLowerCase(),a=document.getElementById('action').value,route=document.getElementById('route').value,pri=document.getElementById('priority').value;const filtered=DATA.filter(r=>{if(a&&r.action!==a)return false;if(route&&r.route!==route)return false;if(pri&&r.priority!==pri)return false;if(q){const hay=[r.id,r.w3w,r.mp,r.species,r.work,r.route,r.direction].join(' ').toLowerCase();if(!hay.includes(q))return false}return true});filtered.forEach(r=>{const m=L.circleMarker([r.lat,r.lon],{radius:7,color:colour(r),fillColor:colour(r),fillOpacity:.9,weight:1.5});m.bindPopup(popup(r),{maxWidth:390});cluster.addLayer(m)});document.getElementById('count').textContent=`Showing ${filtered.length.toLocaleString()} survey locations`;if(filtered.length&&(q||route||pri||a==='Re-survey / Monitoring'))map.fitBounds(L.latLngBounds(filtered.map(r=>[r.lat,r.lon])).pad(.08))}
 function locateMe(){if(!navigator.geolocation)return alert('Location is not available in this browser.');navigator.geolocation.getCurrentPosition(p=>{if(locLayer)map.removeLayer(locLayer);locLayer=L.circleMarker([p.coords.latitude,p.coords.longitude],{radius:9,color:'#000',fillColor:'#fff',fillOpacity:1,weight:3}).addTo(map).bindPopup('Your location').openPopup();map.setView([p.coords.latitude,p.coords.longitude],16)},e=>alert('Unable to access your location: '+e.message),{enableHighAccuracy:true})}
 function resetMap(){document.getElementById('search').value='';document.getElementById('route').value='';document.getElementById('priority').value='';document.getElementById('action').value='Cutting Work';applyFilters();const d=DATA.filter(r=>r.action==='Cutting Work');if(d.length)map.fitBounds(L.latLngBounds(d.map(r=>[r.lat,r.lon])).pad(.03))}
-async function decodeData(){const bin=Uint8Array.from(atob(window.AREA14_GZ_B64),c=>c.charCodeAt(0));const stream=new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'));return JSON.parse(await new Response(stream).text())}
-async function start(){try{DATA=await decodeData();map=L.map('map').setView([54.9,-1.65],8);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);cluster=L.markerClusterGroup({disableClusteringAtZoom:15});map.addLayer(cluster);document.getElementById('search').addEventListener('keydown',e=>{if(e.key==='Enter')applyFilters()});resetMap();document.getElementById('loading').style.display='none'}catch(e){document.getElementById('loading').innerHTML='Unable to load survey data.<br><small>'+esc(e.message)+'</small>'}}
+async function decodeData(){
+ if(!window.AREA14_GZ_B64) throw new Error('Survey data file did not load.');
+ let b64=String(window.AREA14_GZ_B64).replace(/[^A-Za-z0-9+/=]/g,'');
+ b64=b64.replace(/=+$/,'');
+ b64 += '='.repeat((4-(b64.length%4))%4);
+ const raw=atob(b64);
+ const bin=new Uint8Array(raw.length);
+ for(let i=0;i<raw.length;i++)bin[i]=raw.charCodeAt(i);
+ if(typeof DecompressionStream==='undefined') throw new Error('This browser does not support gzip decompression. Please use current Chrome, Edge, Safari or Firefox.');
+ const stream=new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'));
+ const txt=await new Response(stream).text();
+ const parsed=JSON.parse(txt);
+ if(!Array.isArray(parsed)||!parsed.length) throw new Error('Survey data decoded but contained no records.');
+ return parsed;
+}
+async function start(){try{DATA=await decodeData();map=L.map('map').setView([54.9,-1.65],8);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(map);cluster=L.markerClusterGroup({disableClusteringAtZoom:15});map.addLayer(cluster);document.getElementById('search').addEventListener('keydown',e=>{if(e.key==='Enter')applyFilters()});resetMap();document.getElementById('loading').style.display='none'}catch(e){console.error(e);document.getElementById('loading').innerHTML='<div><b>Unable to load survey data.</b><br><small>'+esc(e.message)+'</small><br><br><small>Please refresh the page once. If this persists, send this message back to Matt.</small></div>'}}
 start();
 </script></body></html>
