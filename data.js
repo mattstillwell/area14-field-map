@@ -1,0 +1,1 @@
+window.AREA14_DATA=
